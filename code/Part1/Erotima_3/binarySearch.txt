@@ -1,0 +1,141 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+int  found = 0 ; 
+
+void binarySearch(char arr[][15], int left, int right, char sr[],int volume[])
+{
+    
+	
+	if (right >= left) {
+        int middle = left + (right - left) / 2;
+ 
+        // If the element is present at the middle
+        // itself
+        
+		int val = strcmp(arr[middle],sr);
+		
+		if (val==0)
+            {
+            					found = 1 ;
+								printf("Volume : %d", volume[middle]);
+								
+						}
+ 
+        // If element is smaller than mid, then
+        // it can only be present in left subarray
+        if (val > 0)
+            return binarySearch(arr, left, middle - 1, sr,volume);
+ 
+        // Else the element can only be present
+        // in right subarray
+        return binarySearch(arr, middle + 1, right, sr,volume);
+    }
+ 
+    
+}
+
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    fp = fopen("agn.us.txt", "r");							//Anoigoume to arxeio
+    
+	if (fp == NULL)											//An den yparxei arxeio
+    {
+        printf("Could not open file");
+        return 0;
+    }
+   
+   
+    for (c = getc(fp); c != EOF; c = getc(fp))				//Me to EOF anixneuetai to telos tou file. Count metraei to plithos twn grammwn mexri to telos tou file
+	{
+        if (c == '\n')
+		{
+            count = count + 1;
+	    }
+	}
+   
+   
+   
+    fclose(fp);
+    char str[count][65];									//Apothikefsh kathe grammhs se ena string array
+  
+    
+    
+	fp = fopen("agn.us.txt", "r");
+    
+	for (h=0; h <=count; h++)
+    {
+	fscanf (fp, "%s", str[h]);
+	}
+
+    char *d ,date[count][15];								//Arxikopoihsh pinaka gia th sthlh date
+    const char s[2] = ",";
+    int volume[count];										//Arxikopoihsh pinaka gia th sthlh open
+    
+	for (h=1; h<count; h++)									//For loop gia thn apothikefsh twn 2 zhtoumenwn sthlwn 
+	{														//stous parapanw pinakes kanontas split se kathe komma tis grammes
+    	d = strtok(str[h], s);
+    	strcpy(date[h],d);
+    	d=strtok(NULL,s);
+  		d=strtok(NULL,s);
+  		d=strtok(NULL,s);
+  		d=strtok(NULL,s);
+  		d=strtok(NULL,s);
+  	   volume[h] = atoi(d);
+    		}
+   
+		
+
+char dt[15];
+
+
+printf("Give a date : ");
+scanf("%s",dt);
+
+
+
+ struct timeval start, end;
+    gettimeofday(&start, NULL);
+  binarySearch(date,1,count-1,dt,volume);
+    gettimeofday(&end, NULL);
+    double time_taken;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+
+
+while (found ==0)
+
+{
+	printf("Date not found ");
+	printf("\nGive a date : ");
+    scanf("%s",dt);
+
+
+
+ struct timeval start, end;
+    gettimeofday(&start, NULL);
+  binarySearch(date,1,count-1,dt,volume);
+    gettimeofday(&end, NULL);
+    double time_taken;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+
+}
+
+printf("\nTime measured: %.6f seconds.\n", time_taken);
+ 
+ 
+ 
+		
+fclose(fp);
+
+return 0;
+
+}

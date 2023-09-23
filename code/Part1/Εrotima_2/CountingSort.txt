@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <sys/time.h>
+
+struct row
+{
+    char date[65];
+    float close;
+};
+
+int calculateMax(struct row * arr, int num)
+{
+    int j,c;
+    c=num;
+    float max=0;
+    for(j=0;j<c;j++)
+    {
+        if(arr[j].close>max)
+        {
+            max=arr[j].close;
+        }
+    }
+    return (int)round(max);
+}
+
+void CountingSort(struct row *arr, struct row * B, int num, int max)
+{
+    int i,j,c,m;
+    c=num;
+    m=max;
+    int C[m+1];
+    for(i=1;i<=m;i++)
+    {
+        C[i]=0;
+    }
+    for(j=0;j<c;j++)
+    {
+        C[(int)round(arr[j].close)]=C[(int)round(arr[j].close)]+1;
+    }
+    for(i=2;i<=m;i++)
+    {
+        C[i]=C[i]+C[i-1];
+    }
+    for(j=c-1;j>=0;j--)
+    {
+        B[C[(int)round(arr[j].close)]].close=round(arr[j].close);
+        strcpy(B[C[(int)round(arr[j].close)]].date,arr[j].date);
+        C[(int)round(arr[j].close)]=C[(int)round(arr[j].close)]-1;
+    }
+}
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    fp = fopen("ainv.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    fp = fopen("ainv.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    struct row arr[count-1];
+    char *d;
+    int j=0,i=0;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy((arr + j)->date,d);
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    (arr+j)->close=atof(d);
+    j++;
+    }
+    struct row B[count];
+    int max;
+    max=calculateMax(arr,count-1);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    CountingSort(arr,B,count-1,max);
+    gettimeofday(&end, NULL);
+    double time_taken;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+    for ( j = 1; j < count; j++ )
+    {
+         printf("%d.date = %s, ", j, (B+j)->date );
+         printf("%d.close = %f\n", j, (B+j)->close );
+    }
+    printf("Time measured: %.6f seconds.\n", time_taken);
+    fclose(fp);
+    return 0;
+
+}

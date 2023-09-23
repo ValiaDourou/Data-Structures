@@ -1,0 +1,186 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <sys/time.h>
+
+struct row
+{
+    int date;
+    int volume;
+};
+
+int BinaryInterpolationSearch(struct row *arr, int givenDate, int num)
+{
+    int left,right,next,date,i,j,size,found,wrong,buffer[12],bc,counter;
+    left=0;
+    right=num-1;
+    date=givenDate;
+    size=right-left;
+    found=0;
+    wrong=0;
+    counter=0;
+    int a,b,d;
+    d=(int)sqrt(size);
+    float c;
+    a=date-arr[left].date;
+    b=arr[right].date-arr[left].date;
+    c=(float)a/b;
+    next=(int)(size*c);
+    if(next<0)
+    {
+        wrong=1;
+    }
+    bc=0;
+    buffer[bc]=next;
+    while((date!=arr[next].date)&&(found!=1)&&(wrong!=1))
+    {
+        size=right-left;
+    if(size<=3)
+        {
+            found=0;
+            j=left;
+            while((found!=1) && (j<=right))
+            {
+                if(arr[j].date==date)
+                {
+                    found=1;
+                }
+                else
+                {
+                    j=j+1;
+                }
+            }
+        }
+    if(date>=arr[next].date)
+    {
+        i=0;
+        d=(int)sqrt(size);
+        while((date>arr[next+(i*d)].date)&&(next+i*d<num))
+        {
+            i=i+1;
+        }
+        right=next+i*d;
+        left=next+(i-1)*d;
+    }
+    else if(date<arr[next].date)
+    {
+        i=0;
+        d=(int)sqrt(size);
+        while((date<arr[next-(i*d)].date)&&(next-i*d>0))
+        {
+            i=i+1;
+        }
+        right=next-(i-1)*d;
+        left=next-i*d;
+    }
+    a=date-arr[left].date;
+    b=arr[right].date-arr[left].date;
+    c=(float)a/b;
+    size=right-left;
+    next=left+(int)(size*c);
+    bc++;
+    buffer[bc]=next;
+    if(buffer[bc]==buffer[bc-1])
+    {
+        counter++;
+    }
+    if((counter>=8)||(buffer[bc]<0)||(buffer[bc]>num))
+    {
+        wrong=1;
+    }
+    }
+    if(date==arr[next].date)
+    {
+        printf("Success! The volume of your given date is equal to %d and in the %d position of the sorted file.\n", arr[next].volume, next+2);
+    }
+    else if(found==1)
+    {
+        printf("Success! The volume of your given date is equal to %d and in the %d position of the sorted file.\n", arr[next].volume, j+2);
+    }
+    else if(wrong==1)
+    {
+        printf("Failure. The volume was not found.\n");
+    }
+}
+
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    char date[65];
+    fp = fopen("ainv.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    int dateInArray;
+    int day1,month1,year1;
+    fp = fopen("ainv.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    struct row arr[count-1];
+    char *d;
+    int j=0,i=0;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+    dateInArray=day1+100*month1+10000*year1;
+    (arr+j)->date=dateInArray;
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    (arr+j)->volume=atoi(d);
+    j++;
+    }
+    int check=0,year2,month2,day2;
+    char givenDate[65];
+    int givendate;
+    printf("Give the date you wish to check(our records are in the period of 2005-2017):");
+    scanf("%s", givenDate);
+    while((strchr(givenDate,'-'))==NULL)
+    {
+        printf("Wrong form. Date must be in the form of year-month-date.\n");
+        printf("Give the date you wish to check(our records are in the period of 2005-2017):");
+        scanf("%s", givenDate);
+    }
+    sscanf(givenDate,"%d-%d-%d",&year2,&month2,&day2);
+    givendate=day2+100*month2+10000*year2;
+    while((givendate<=20041231)||(givendate>=20180101))
+    {
+        printf("Our records do not cover this date.\n");
+        printf("Give the date you wish to check(our records are in the period of 2005-2017):");
+        scanf("%s", givenDate);
+        sscanf(givenDate,"%d-%d-%d",&year2,&month2,&day2);
+        givendate=day2+(100*month2)+(10000*year2);
+    }
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    BinaryInterpolationSearch(arr,givendate,count-1);
+    gettimeofday(&end, NULL);
+    double time_taken;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+    printf("Time measured: %.6f seconds.\n", time_taken);
+fclose(fp);
+return 0;
+}

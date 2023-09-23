@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+
+void merge(float arr[], int l, int m, int r,char date[][15])
+{
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+ 
+    float L[n1], R[n2];											  //Proswrinoi pinakes gia ta dedomena ths sthlhs open 
+ 	char dateL[n1][15] , dateR[n2][15]; 					      //Proswrinoi pinakes gia ta dedomena ths sthlhs date 
+    
+    for (i = 0; i < n1; i++)									  //Antigrafh twn dedomenwn stous proswrinous pinakes
+       {
+	    L[i] = arr[l + i];
+        strcpy(dateL[i] , date[l +i]); 
+	   }
+
+	for (j = 0; j < n2; j++)
+        {
+		
+		R[j] = arr[m + 1 + j];
+         strcpy (dateR[j] , date[m + 1 + j] );
+ 
+        }
+        
+																 //Merge tous proswrinous pinakes pisw stous pinakes arr[l..r] kai date[l..r] 
+    i =0; 														 //Arxikos deikths tou prwtou ypopinaka
+    j = 0;														 //Arxikos deikths tou deuterou ypopinaka
+    k = l; 														 //Arxikos deikths twn merged ypopinakwn
+    
+	while (i < n1 && j < n2) 
+	{
+        if (L[i] <= R[j]) 
+		{
+            arr[k] = L[i];
+           strcpy (date[k] , dateL[i]); 
+		    i++;
+        }
+        else 
+		{
+            arr[k] = R[j];
+             strcpy (date[k] , dateR[j]); 
+			j++;
+        }
+        k++;
+    }
+ 
+    
+    while (i < n1)                                               //Antigrafh twn ypoleipomenwn stoixeiwn ths L[], an yparxoun
+	{
+        arr[k] = L[i];
+       strcpy (date[k] , dateL[i] );
+	    i++;
+        k++;
+    }
+ 
+    while (j < n2)                                               //Antigrafh twn ypoleipomenwn stoixeiwn ths R[], an yparxoun
+	{
+        arr[k] = R[j];
+        strcpy (date[k] , dateR[j] ) ;
+		j++;
+        k++;
+    }
+}
+ 
+
+void mergeSort(float arr[], int l, int r, char date[][15])       //To l einai gia ton aristero deikth kai to r einai gia ton deksio 
+{																 //deikth tou ypopinaka pou tha taksinomhthei
+    if (l < r) {
+														        // Opws kai to (l+r)/2, alla apokleiei th periptwsh yperxeilishs gia megala l kai h
+
+        int m = l + (r - l) / 2;
+        
+        
+
+        mergeSort(arr, l, m,date);        						//Taksinomei to prwto miso kai to deutero
+        mergeSort(arr, m + 1, r,date);
+ 
+        merge(arr, l, m, r,date);
+    }
+}
+ 
+
+
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    fp = fopen("ainv.us.txt", "r");							//Anoigoume to arxeio
+    
+	if (fp == NULL)											//An den yparxei arxeio
+    {
+        printf("Could not open file");
+        return 0;
+    }
+   
+   
+    for (c = getc(fp); c != EOF; c = getc(fp))				//Me to EOF anixneuetai to telos tou file. Count metraei to plithos twn grammwn mexri to telos tou file
+	{
+        if (c == '\n')
+		{
+            count = count + 1;
+	    }
+	}
+   
+   
+   
+    fclose(fp);
+    char str[count][65];									//Apothikefsh kathe grammhs se ena string array
+    
+	fp = fopen("ainv.us.txt", "r");
+    
+	for (h=0; h <=count; h++)
+    {
+	fscanf (fp, "%s", str[h]);
+	}
+
+    char *d ,date[count][15];								//Arxikopoihsh pinaka gia th sthlh date
+    int j=0,i=0;
+    const char s[2] = ",";
+    float open[count];										//Arxikopoihsh pinaka gia th sthlh open
+    
+	for (h=1; h<count; h++)									//For loop gia thn apothikefsh twn 2 zhtoumenwn sthlwn 
+	{														//stous parapanw pinakes kanontas split se kathe komma tis grammes
+    	d = strtok(str[h], s);
+    	strcpy(date[h],d);
+    	d=strtok(NULL,s);
+  		open[h] = atof(d);
+    	j++;
+	}
+   
+mergeSort(open,1,count-1,date);								//Mergesort print
+	
+	for ( j = 1 ; j < count; j++ )
+    {
+         printf("%d)  date = %s", j, date[j]);
+         printf(" \t open = %f\n", open[j] );
+    }
+    
+   
+fclose(fp);
+return 0;
+
+}

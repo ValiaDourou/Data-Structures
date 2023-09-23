@@ -1,0 +1,372 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+ struct node
+{
+	int volume;
+	int date;
+	struct node *left,*right;
+	int height;
+};
+
+int height(struct node *T)
+{
+    if (T == NULL)
+        return 0;
+    return T->height;
+}
+
+struct node *rightRotate(struct node *x)
+{
+    struct node *y = x->left;
+    struct node *z = y->right;
+    y->right = x;
+    x->left = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+struct node *leftRotate(struct node *x)
+{
+    struct node *y = x->right;
+    struct node *z = y->left;
+    y->left = x;
+    x->right = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+int Balance(struct node *T)
+{
+    int b=height(T->right) - height(T->left);
+    if (T == NULL)
+        return 0;
+    return b;
+}
+
+struct node* insert(struct node* x, int dt, int v)
+{
+    if (x == NULL)
+    {
+    struct node* x = (struct node*)malloc(sizeof(struct node));
+    x->date=dt;
+    x->volume=v;
+    x->left=NULL;
+    x->right=NULL;
+    x->height=1;
+    return x;
+    }
+    if (dt < x->date)
+    {
+        x->left  = insert(x->left,dt,v);
+    }
+    else if (dt > x->date)
+    {
+        x->right = insert(x->right,dt,v);
+    }
+    else
+    {
+        return x;
+    }
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    int balance = Balance(x);
+    if ((balance > 1) && (dt > x->right->date))
+    {
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (dt < x->left->date))
+    {
+        return rightRotate(x);
+    }
+    if ((balance > 1) && (dt < x->right->date))
+    {
+        x->right =  rightRotate(x->right);
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (dt > x->left->date))
+    {
+        x->left = leftRotate(x->left);
+        return rightRotate(x);
+    }
+    return x;
+}
+
+void inOrder(struct node *root)
+{
+    if(root != NULL)
+    {
+        inOrder(root->left);
+        int numb[8], number,dig=0;
+        number=root->date;
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+        printf(" (Balance=%d) ",Balance(root));
+        inOrder(root->right);
+    }
+}
+
+void searchInAVL(int date, struct node* root)
+{
+    if(root!=NULL)
+    {
+    if (date<root->date)
+        {
+        return searchInAVL(date,root->left);
+        }
+    else if (date>root->date)
+        {
+        return searchInAVL(date,root->right);
+        }
+    else if (date==root->date)
+        {
+            printf("The volume of your given date is %d\n",root->volume);
+        }
+    }
+    else
+    {
+        printf("Not valid date\n");
+    }
+}
+
+void changeInAVL(int date, struct node* root)
+{
+    int volume,pvol;
+    if(root!=NULL)
+    {
+    if (date<root->date)
+        {
+        return changeInAVL(date,root->left);
+        }
+    else if (date>root->date)
+        {
+        return changeInAVL(date,root->right);
+        }
+    else if (date==root->date)
+        {
+            pvol=root->volume;
+            printf("Give the volume you want to write in this date: \n");
+            scanf("%d",&volume);
+            root->volume=volume;
+            printf("The previous volume of your given date was %d and now is equal to %d.\n",pvol,root->volume);
+        }
+    }
+    else
+    {
+        printf("Not valid date\n");
+    }
+}
+
+struct node* Delete(struct node * root, int dt)
+{
+    if (root == NULL)
+    {
+         return root;
+    }
+    if ( dt < root->date )
+    {
+        root->left = Delete(root->left, dt);
+    }
+    else if( dt > root->date )
+    {
+        root->right = Delete(root->right, dt);
+    }
+    else
+    {
+        if( (root->left == NULL) || (root->right == NULL) )
+        {
+            struct node *temp;
+            if(root->left==NULL)
+            {
+                temp=root->right;
+            }
+            else if(root->right==NULL)
+            {
+                temp=root->left;
+            }
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else
+            {
+                *root = *temp;
+            }
+            free(temp);
+        }
+        else
+        {
+            struct node* current = root->right;
+            while (current->left != NULL)
+            {
+                current = current->left;
+            }
+            root->date = current->date;
+            root->volume = current->volume;
+            root->right = Delete(root->right, current->date);
+        }
+    }
+    if (root == NULL)
+    {
+        return root;
+    }
+    if(height(root->left)>=height(root->right))
+    {
+        root->height=1+height(root->left);
+    }
+    else if(height(root->left)<height(root->right))
+    {
+        root->height=1+height(root->right);
+    }
+    int balance = Balance(root);
+    if ((balance > 1) && (Balance(root->right) >= 0))
+    {
+        return leftRotate(root);
+    }
+    if ((balance > 1) && (Balance(root->right) < 0))
+    {
+        root->right =  rightRotate(root->right);
+        return leftRotate(root);
+    }
+    if ((balance < -1) && (Balance(root->left) <= 0))
+    {
+        return rightRotate(root);
+    }
+    if ((balance < -1) && (Balance(root->left) > 0))
+    {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+    return root;
+}
+
+int main()
+{
+    struct node *root=NULL;
+    int dt,v;
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    char date[65];
+    fp = fopen("agn.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    int day1,month1,year1;
+    fp = fopen("agn.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    char *d;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    root=insert(root,dt,v);
+    }
+    int option;
+    printf("What would you like to do?\n");
+    printf(" 1.See the constructed AVL in inorder traversal\n 2.Search for a volume of a given date\n 3.Change the volume of a given date\n 4.Delete the record of a specific date\n 5.Exit the application\n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2)&&(option!=3)&&(option!=4)&&(option!=5))
+    {
+        printf("Not a valid choice, please type a number between 1 to 5\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            inOrder(root);
+            break;
+        case 2:
+            printf("Give the date of which the volume you want to search for: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            searchInAVL(dt,root);
+            break;
+        case 3:
+            printf("Give the date of which the volume you want to change: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            changeInAVL(dt,root);
+            break;
+        case 4:
+            printf("Give the date of the record you wish to delete: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            root=Delete(root,dt);
+            inOrder(root);
+            break;
+        case 5:
+            exit(0);
+            break;
+    }
+    return 0;
+}

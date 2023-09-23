@@ -1,0 +1,249 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+ struct node
+{
+	int volume;
+	int date;
+	struct node *left,*right;
+	int height;
+	int count;
+	int* days;
+};
+
+int height(struct node *T)
+{
+    if (T == NULL)
+        return 0;
+    return T->height;
+}
+
+struct node *rightRotate(struct node *x)
+{
+    struct node *y = x->left;
+    struct node *z = y->right;
+    y->right = x;
+    x->left = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+struct node *leftRotate(struct node *x)
+{
+    struct node *y = x->right;
+    struct node *z = y->left;
+    y->left = x;
+    x->right = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+int Balance(struct node *T)
+{
+    int b=height(T->right) - height(T->left);
+    if (T == NULL)
+        return 0;
+    return b;
+}
+
+struct node* insert(struct node* x, int dt, int v)
+{
+    if (x == NULL)
+    {
+    struct node* x = (struct node*)malloc(sizeof(struct node));
+    x->date=dt;
+    x->volume=v;
+    x->left=NULL;
+    x->right=NULL;
+    x->height=1;
+    x->count=1;
+    x->days = (int*)malloc(x->count*sizeof(int));
+    x->days[1]=dt;
+    return x;
+    }
+    if (v == x->volume)
+    {
+        x->count=(x->count)+1;
+        x->days[x->count]=dt;
+        return x;
+    }
+    else if (v < x->volume)
+    {
+        x->left  = insert(x->left,dt,v);
+    }
+    else if (v > x->volume)
+    {
+        x->right = insert(x->right,dt,v);
+    }
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    int balance = Balance(x);
+    if ((balance > 1) && (v > x->right->volume))
+    {
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (v < x->left->volume))
+    {
+        return rightRotate(x);
+    }
+    if ((balance > 1) && (v < x->right->volume))
+    {
+        x->right =  rightRotate(x->right);
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (v > x->left->volume))
+    {
+        x->left = leftRotate(x->left);
+        return rightRotate(x);
+    }
+    return x;
+}
+
+void minimumVolume(struct node* x)
+{
+    int i=1;
+    struct node * temp=x;
+    while (temp->left != NULL)
+    {
+        *temp = *(temp->left);
+    }
+    printf("The least volume is equal to %d and it's in the file %d time/times in the following position/positions:\n",temp->volume, temp->count);
+    for(i=1;i<=temp->count;i++)
+    {
+        int numb[8], number,dig=0;
+        number=temp->days[i];
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d ", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+    }
+}
+
+void maximumVolume(struct node* x)
+{
+    int i=1;
+    struct node * temp=x;
+    while (temp->right != NULL)
+    {
+        *temp = *(temp->right);
+    }
+    printf("The maximum volume is equal to %d and it's in the file %d time/times in the following position/positions:\n",temp->volume, temp->count);
+    for(i=1;i<=temp->count;i++)
+    {
+        int numb[8], number,dig=0;
+        number=temp->days[i];
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d ", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+    }
+}
+
+int main()
+{
+    struct node *root=NULL;
+    int dt,v;
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    char date[65];
+    fp = fopen("agn.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    int day1,month1,year1;
+    fp = fopen("agn.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    char *d;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    root=insert(root,dt,v);
+    }
+    int option;
+    printf("What would you like to do?\n");
+    printf(" 1.Find date/dates with minimum volume \n 2.Find date/dates with maximum volume \n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2))
+    {
+        printf("Not a valid choice, please type 1 or 2.\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            minimumVolume(root);
+            break;
+        case 2:
+            maximumVolume(root);
+            break;
+    }
+    return 0;
+}

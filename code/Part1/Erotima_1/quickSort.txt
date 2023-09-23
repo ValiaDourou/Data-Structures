@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+void swap(float arr[], int i, int j, char date[][15])		//Ginetai swap twn arithmwn arr[i] kai arr[j]
+{
+    float temp = arr[j];
+    arr[j] = arr[i];
+    arr[i] = temp;
+	char temp1[15];
+
+	strcpy(temp1,date[j]);									//Otan ginetai swap twn arithmwn arr[i] kai arr[j] 
+	strcpy(date[j],date[i]);								//ginetai tautoxrona swap twn string date[i] kai date[j]
+	strcpy(date[i],temp1);
+}
+
+void quicksort1(float arr[], int a, int b,char date[][15])	//Algorithmos Quicksort se synarthsh
+{
+    if (a >= b) 
+        return;
+        
+    float key = arr[a];										//key einai to pivot (to pio aristero stoixeio sth periptwsh mas)
+    int i = a + 1, j = b;
+    while (i < j)
+	{
+        while (i < j && arr[j] >= key)
+            --j;
+        while (i < j && arr[i] <= key)
+            ++i;
+        if (i < j)
+            swap(arr, i, j ,date);
+    }
+
+    if (arr[a] > arr[i])
+	{
+        swap(arr, a, i,date);
+        quicksort1(arr, a, i - 1,date );
+        quicksort1(arr, i + 1, b,date);
+    } else													// Den yparxei aristerh meria apo to pivot
+		{ 
+        quicksort1(arr, a + 1, b,date);
+    	}
+}
+
+void quicksort(float arr[], int len , char date[][15])		
+{
+    quicksort1(arr, 0, len - 1,date);
+}
+
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    fp = fopen("ainv.us.txt", "r");							//Anoigoume to arxeio
+    
+	if (fp == NULL)											//An den yparxei arxeio
+    {
+        printf("Could not open file");
+        return 0;
+    }
+   
+   
+    for (c = getc(fp); c != EOF; c = getc(fp))				//Me to EOF anixneuetai to telos tou file. Count metraei to plithos twn grammwn mexri to telos tou file
+	{
+        if (c == '\n')
+		{
+            count = count + 1;
+	    }
+	}
+   
+   
+   
+    fclose(fp);
+    char str[count][65];									//Apothikefsh kathe grammhs se ena string array
+    
+	fp = fopen("ainv.us.txt", "r");
+    
+	for (h=0; h <=count; h++)
+    {
+	fscanf (fp, "%s", str[h]);
+	}
+
+    char *d ,date[count][15];								//Arxikopoihsh pinaka gia th sthlh date
+    int j=0,i=0;
+    const char s[2] = ",";
+    float open[count];										//Arxikopoihsh pinaka gia th sthlh open
+    
+	for (h=1; h<count; h++)									//For loop gia thn apothikefsh twn 2 zhtoumenwn sthlwn 
+	{														//stous parapanw pinakes kanontas split se kathe komma tis grammes
+    	d = strtok(str[h], s);
+    	strcpy(date[h],d);
+    	d=strtok(NULL,s);
+  		open[h] = atof(d);
+    	j++;
+	}
+   
+	quicksort(open,count,date);								//Quicksort print
+	
+	for ( j = 1; j < count; j++ )
+    {
+         printf("%d)  date = %s", j, date[j]);
+         printf(" \t open = %f\n", open[j] );
+    }
+    
+   
+fclose(fp);
+return 0;
+
+}

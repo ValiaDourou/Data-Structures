@@ -1,0 +1,277 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define SIZE 11
+
+struct node
+{
+    char Date[65];
+    int date;
+    int volume;
+    struct node* next;
+};
+
+int ASCIIcalculator(char d[65])
+{
+    int sum=0,i=0;
+    char date[65];
+    strcpy(date,d);
+    while(date[i]!='\0')
+    {
+        sum=sum+date[i];
+        i++;
+    }
+    return sum;
+}
+
+struct node* head[SIZE]={NULL};
+struct node* n;
+
+void insert(char d[65], int vol)
+{
+    int i,key;
+    char datee[65];
+    strcpy(datee,d);
+    key=ASCIIcalculator(datee);
+    i=key%SIZE;
+    struct node * Node=(struct node *)malloc(sizeof(struct node));
+    strcpy(Node->Date,datee);
+    Node->date=key;
+    Node->volume=vol;
+    Node->next=NULL;
+    if(head[i]==NULL)
+    {
+        head[i]=Node;
+    }
+    else
+    {
+        n=head[i];
+        while(n->next!=NULL)
+        {
+            n=n->next;
+        }
+        n->next=Node;
+    }
+}
+
+void search(char d[65])
+{
+    int year1,month1,day1;
+    int i,key,dt,givend;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        for(n=head[i];n!=NULL;n=n->next)
+            {
+                sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+                givend=day1+100*month1+10000*year1;
+                if(givend==dt)
+                {
+                    printf("Date found and the volume is equal to %d\n", n->volume);
+                    break;
+                }
+                if(n==NULL)
+                {
+                    printf("No such element exists.\n");
+                }
+            }
+    }
+}
+
+void change(char d[65])
+{
+    int year1,month1,day1,volume;
+    int i,key,dt,givend;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        for(n=head[i];n!=NULL;n=n->next)
+            {
+                sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+                givend=day1+100*month1+10000*year1;
+                if(givend==dt)
+                {
+                    printf("Date found and the volume is equal to %d\n", n->volume);
+                    printf("Give the new volume for the given date: \n");
+                    scanf("%d",&volume);
+                    n->volume=volume;
+                    printf("After the changes the new volume is equal to %d\n",n->volume);
+                    break;
+                }
+                if(n==NULL)
+                {
+                    printf("No such element exists.\n");
+                }
+            }
+    }
+}
+
+void Delete(char d[65])
+{
+
+    int year1,month1,day1,volume;
+    int i,key,dt,givend;
+    struct node* prev;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        n=head[i];
+        sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+        givend=day1+100*month1+10000*year1;
+        if((n!=NULL)&&(givend==dt))
+        {
+            head[i]=n->next;
+            free(n);
+            return;
+        }
+        while ((n!=NULL)&&(givend!=dt))
+        {
+            prev=n;
+            n=n->next;
+            sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+            givend=day1+100*month1+10000*year1;
+        }
+        if(n==NULL)
+        {
+            printf("No such element exists.\n");
+            return;
+        }
+        prev->next=n->next;
+        free(n);
+    }
+}
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    char date[65];
+    fp = fopen("agn.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    fp = fopen("agn.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    char *d;
+    int v;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    insert(date,v);
+    }
+    int jk;
+    for(jk=0;jk<SIZE;jk++)
+    {
+    printf("\nEntries at index %d: ",jk);
+       if(head[jk] == NULL)
+       {
+       printf("No Hash Entry!");
+       }
+       else
+       {
+      for(n=head[jk];n!=NULL;n=n->next)
+      {
+          printf("%s,%d,volume:%d->",n->Date,n->date,n->volume);
+      }
+      printf("\n");
+       }
+     }
+    int option;
+    printf("What would you like to do?\n");
+    printf(" 1.Search volume of a given date\n 2.Change the volume of a given date\n 3.Delete a date\n 4.Exit the application\n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2)&&(option!=3)&&(option!=4))
+    {
+        printf("Not a valid choice, please type a number between 1 to 4\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            printf("Give the date of which the volume you want to search for: \n");
+            scanf("%s", date);
+            search(date);
+            break;
+        case 2:
+            printf("Give the date of which the volume you want to change: \n");
+            scanf("%s", date);
+            change(date);
+            break;
+        case 3:
+            printf("Give the date of the record you wish to delete: \n");
+            scanf("%s", date);
+            Delete(date);
+            printf("The hash table after deleting the record is: \n");
+            for(jk=0;jk<SIZE;jk++)
+    {
+    printf("\nEntries at index %d: ",jk);
+       if(head[jk] == NULL)
+       {
+       printf("No Hash Entry!");
+       }
+       else
+       {
+      for(n=head[jk];n!=NULL;n=n->next)
+      {
+          printf("%s,%d,volume:%d->",n->Date,n->date,n->volume);
+      }
+      printf("\n");
+       }
+     }
+            break;
+        case 4:
+            exit(0);
+            break;
+    }
+  return 0;
+}

@@ -1,0 +1,853 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define SIZE 11
+
+struct nodeA
+{
+	int volume;
+	int date;
+	struct nodeA *left,*right;
+	int height;
+};
+
+ struct nodeB
+{
+	int volume;
+	int date;
+	struct nodeB *left,*right;
+	int height;
+	int count;
+	int* days;
+};
+
+struct nodeC
+{
+    char Date[65];
+    int date;
+    int volume;
+    struct nodeC* next;
+};
+
+int height(struct nodeA *T)
+{
+    if (T == NULL)
+        return 0;
+    return T->height;
+}
+
+struct nodeA *rightRotate(struct nodeA *x)
+{
+    struct nodeA *y = x->left;
+    struct nodeA *z = y->right;
+    y->right = x;
+    x->left = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+struct nodeA *leftRotate(struct nodeA *x)
+{
+    struct nodeA *y = x->right;
+    struct nodeA *z = y->left;
+    y->left = x;
+    x->right = z;
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    if(height(y->left)>height(y->right))
+    {
+        y->height =height(y->left)+1;
+    }
+    else
+    {
+        y->height = height(y->right)+1;
+    }
+    return y;
+}
+
+int Balance(struct nodeA *T)
+{
+    int b=height(T->right) - height(T->left);
+    if (T == NULL)
+        return 0;
+    return b;
+}
+
+struct nodeA* insert(struct nodeA* x, int dt, int v)
+{
+    if (x == NULL)
+    {
+    struct nodeA* x = (struct nodeA*)malloc(sizeof(struct nodeA));
+    x->date=dt;
+    x->volume=v;
+    x->left=NULL;
+    x->right=NULL;
+    x->height=1;
+    return x;
+    }
+    if (dt < x->date)
+    {
+        x->left  = insert(x->left,dt,v);
+    }
+    else if (dt > x->date)
+    {
+        x->right = insert(x->right,dt,v);
+    }
+    else
+    {
+        return x;
+    }
+    if(height(x->left)>height(x->right))
+    {
+        x->height = height(x->left)+1;
+    }
+    else
+    {
+        x->height = height(x->right)+1;
+    }
+    int balance = Balance(x);
+    if ((balance > 1) && (dt > x->right->date))
+    {
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (dt < x->left->date))
+    {
+        return rightRotate(x);
+    }
+    if ((balance > 1) && (dt < x->right->date))
+    {
+        x->right =  rightRotate(x->right);
+        return leftRotate(x);
+    }
+    if ((balance < -1) && (dt > x->left->date))
+    {
+        x->left = leftRotate(x->left);
+        return rightRotate(x);
+    }
+    return x;
+}
+
+void inOrder(struct nodeA *root)
+{
+    if(root != NULL)
+    {
+        inOrder(root->left);
+        int numb[8], number,dig=0;
+        number=root->date;
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+        printf(" (Balance=%d) ",Balance(root));
+        inOrder(root->right);
+    }
+}
+
+void searchInAVL(int date, struct nodeA* root)
+{
+    if(root!=NULL)
+    {
+    if (date<root->date)
+        {
+        return searchInAVL(date,root->left);
+        }
+    else if (date>root->date)
+        {
+        return searchInAVL(date,root->right);
+        }
+    else if (date==root->date)
+        {
+            printf("The volume of your given date is %d\n",root->volume);
+        }
+    }
+    else
+    {
+        printf("Not valid date\n");
+    }
+}
+
+void changeInAVL(int date, struct nodeA* root)
+{
+    int volume,pvol;
+    if(root!=NULL)
+    {
+    if (date<root->date)
+        {
+        return changeInAVL(date,root->left);
+        }
+    else if (date>root->date)
+        {
+        return changeInAVL(date,root->right);
+        }
+    else if (date==root->date)
+        {
+            pvol=root->volume;
+            printf("Give the volume you want to write in this date: \n");
+            scanf("%d",&volume);
+            root->volume=volume;
+            printf("The previous volume of your given date was %d and now is equal to %d.\n",pvol,root->volume);
+        }
+    }
+    else
+    {
+        printf("Not valid date\n");
+    }
+}
+
+struct nodeA* Delete(struct nodeA * root, int dt)
+{
+    if (root == NULL)
+    {
+         return root;
+    }
+    if ( dt < root->date )
+    {
+        root->left = Delete(root->left, dt);
+    }
+    else if( dt > root->date )
+    {
+        root->right = Delete(root->right, dt);
+    }
+    else
+    {
+        if( (root->left == NULL) || (root->right == NULL) )
+        {
+            struct nodeA *temp;
+            if(root->left==NULL)
+            {
+                temp=root->right;
+            }
+            else if(root->right==NULL)
+            {
+                temp=root->left;
+            }
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else
+            {
+                *root = *temp;
+            }
+            free(temp);
+        }
+        else
+        {
+            struct nodeA* current = root->right;
+            while (current->left != NULL)
+            {
+                current = current->left;
+            }
+            root->date = current->date;
+            root->volume = current->volume;
+            root->right = Delete(root->right, current->date);
+        }
+    }
+    if (root == NULL)
+    {
+        return root;
+    }
+    if(height(root->left)>=height(root->right))
+    {
+        root->height=1+height(root->left);
+    }
+    else if(height(root->left)<height(root->right))
+    {
+        root->height=1+height(root->right);
+    }
+    int balance = Balance(root);
+    if ((balance > 1) && (Balance(root->right) >= 0))
+    {
+        return leftRotate(root);
+    }
+    if ((balance > 1) && (Balance(root->right) < 0))
+    {
+        root->right =  rightRotate(root->right);
+        return leftRotate(root);
+    }
+    if ((balance < -1) && (Balance(root->left) <= 0))
+    {
+        return rightRotate(root);
+    }
+    if ((balance < -1) && (Balance(root->left) > 0))
+    {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+    return root;
+}
+
+int heightB(struct nodeB *T)
+{
+    if (T == NULL)
+        return 0;
+    return T->height;
+}
+
+struct nodeB *rightRotateB(struct nodeB *x)
+{
+    struct nodeB *y = x->left;
+    struct nodeB *z = y->right;
+    y->right = x;
+    x->left = z;
+    if(heightB(x->left)>heightB(x->right))
+    {
+        x->height = heightB(x->left)+1;
+    }
+    else
+    {
+        x->height = heightB(x->right)+1;
+    }
+    if(heightB(y->left)>heightB(y->right))
+    {
+        y->height =heightB(y->left)+1;
+    }
+    else
+    {
+        y->height = heightB(y->right)+1;
+    }
+    return y;
+}
+
+struct nodeB *leftRotateB(struct nodeB *x)
+{
+    struct nodeB *y = x->right;
+    struct nodeB *z = y->left;
+    y->left = x;
+    x->right = z;
+    if(heightB(x->left)>heightB(x->right))
+    {
+        x->height = heightB(x->left)+1;
+    }
+    else
+    {
+        x->height = heightB(x->right)+1;
+    }
+    if(heightB(y->left)>heightB(y->right))
+    {
+        y->height =heightB(y->left)+1;
+    }
+    else
+    {
+        y->height = heightB(y->right)+1;
+    }
+    return y;
+}
+
+int BalanceB(struct nodeB *T)
+{
+    int b=heightB(T->right) - heightB(T->left);
+    if (T == NULL)
+        return 0;
+    return b;
+}
+
+struct nodeB* insertB(struct nodeB* x, int dt, int v)
+{
+    if (x == NULL)
+    {
+    struct nodeB* x = (struct nodeB*)malloc(sizeof(struct nodeB));
+    x->date=dt;
+    x->volume=v;
+    x->left=NULL;
+    x->right=NULL;
+    x->height=1;
+    x->count=1;
+    x->days = (int*)malloc(x->count*sizeof(int));
+    x->days[1]=dt;
+    return x;
+    }
+    if (v == x->volume)
+    {
+        x->count=(x->count)+1;
+        x->days[x->count]=dt;
+        return x;
+    }
+    else if (v < x->volume)
+    {
+        x->left  = insertB(x->left,dt,v);
+    }
+    else if (v > x->volume)
+    {
+        x->right = insertB(x->right,dt,v);
+    }
+    if(heightB(x->left)>heightB(x->right))
+    {
+        x->height = heightB(x->left)+1;
+    }
+    else
+    {
+        x->height = heightB(x->right)+1;
+    }
+    int balance = BalanceB(x);
+    if ((balance > 1) && (v > x->right->volume))
+    {
+        return leftRotateB(x);
+    }
+    if ((balance < -1) && (v < x->left->volume))
+    {
+        return rightRotateB(x);
+    }
+    if ((balance > 1) && (v < x->right->volume))
+    {
+        x->right =  rightRotateB(x->right);
+        return leftRotateB(x);
+    }
+    if ((balance < -1) && (v > x->left->volume))
+    {
+        x->left = leftRotateB(x->left);
+        return rightRotateB(x);
+    }
+    return x;
+}
+
+void minimumVolumeB(struct nodeB* x)
+{
+    int i=1;
+    struct nodeB * temp=x;
+    while (temp->left != NULL)
+    {
+        *temp = *(temp->left);
+    }
+    printf("The least volume is equal to %d and it's in the file %d time/times in the following position/positions:\n",temp->volume, temp->count);
+    for(i=1;i<=temp->count;i++)
+    {
+        int numb[8], number,dig=0;
+        number=temp->days[i];
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d ", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+    }
+}
+
+void maximumVolumeB(struct nodeB* x)
+{
+    int i=1;
+    struct nodeB * temp=x;
+    while (temp->right != NULL)
+    {
+        *temp = *(temp->right);
+    }
+    printf("The maximum volume is equal to %d and it's in the file %d time/times in the following position/positions:\n",temp->volume, temp->count);
+    for(i=1;i<=temp->count;i++)
+    {
+        int numb[8], number,dig=0;
+        number=temp->days[i];
+        while(dig<8)
+        {
+        numb[dig] = number % 10;
+        number=number/10;
+        dig++;
+        }
+        printf("%d%d%d%d-%d%d-%d%d ", numb[7],numb[6],numb[5],numb[4],numb[3],numb[2],numb[1],numb[0] );
+    }
+}
+
+int ASCIIcalculator(char d[65])
+{
+    int sum=0,i=0;
+    char date[65];
+    strcpy(date,d);
+    while(date[i]!='\0')
+    {
+        sum=sum+date[i];
+        i++;
+    }
+    return sum;
+}
+
+struct nodeC* head[SIZE]={NULL};
+struct nodeC* n;
+
+void insertC(char d[65], int vol)
+{
+    int i,key;
+    char datee[65];
+    strcpy(datee,d);
+    key=ASCIIcalculator(datee);
+    i=key%SIZE;
+    struct nodeC * Node=(struct nodeC *)malloc(sizeof(struct nodeC));
+    strcpy(Node->Date,datee);
+    Node->date=key;
+    Node->volume=vol;
+    Node->next=NULL;
+    if(head[i]==NULL)
+    {
+        head[i]=Node;
+    }
+    else
+    {
+        n=head[i];
+        while(n->next!=NULL)
+        {
+            n=n->next;
+        }
+        n->next=Node;
+    }
+}
+
+void searchC(char d[65])
+{
+    int year1,month1,day1;
+    int i,key,dt,givend;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        for(n=head[i];n!=NULL;n=n->next)
+            {
+                sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+                givend=day1+100*month1+10000*year1;
+                if(givend==dt)
+                {
+                    printf("Date found and the volume is equal to %d\n", n->volume);
+                    break;
+                }
+                if(n==NULL)
+                {
+                    printf("No such element exists.\n");
+                }
+            }
+    }
+}
+
+void changeC(char d[65])
+{
+    int year1,month1,day1,volume;
+    int i,key,dt,givend;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        for(n=head[i];n!=NULL;n=n->next)
+            {
+                sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+                givend=day1+100*month1+10000*year1;
+                if(givend==dt)
+                {
+                    printf("Date found and the volume is equal to %d\n", n->volume);
+                    printf("Give the new volume for the given date: \n");
+                    scanf("%d",&volume);
+                    n->volume=volume;
+                    printf("After the changes the new volume is equal to %d\n",n->volume);
+                    break;
+                }
+                if(n==NULL)
+                {
+                    printf("No such element exists.\n");
+                }
+            }
+    }
+}
+
+void DeleteC(char d[65])
+{
+
+    int year1,month1,day1,volume;
+    int i,key,dt,givend;
+    struct nodeC* prev;
+    char dateToCompare[65];
+    strcpy(dateToCompare,d);
+    key=ASCIIcalculator(dateToCompare);
+    i=key%SIZE;
+    sscanf(dateToCompare,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    if(head[i]==NULL)
+    {
+        printf("No such element exists.\n");
+    }
+    else
+    {
+        n=head[i];
+        sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+        givend=day1+100*month1+10000*year1;
+        if((n!=NULL)&&(givend==dt))
+        {
+            head[i]=n->next;
+            free(n);
+            return;
+        }
+        while ((n!=NULL)&&(givend!=dt))
+        {
+            prev=n;
+            n=n->next;
+            sscanf(n->Date,"%d-%d-%d",&year1,&month1,&day1);
+            givend=day1+100*month1+10000*year1;
+        }
+        if(n==NULL)
+        {
+            printf("No such element exists.\n");
+            return;
+        }
+        prev->next=n->next;
+        free(n);
+    }
+}
+
+int main()
+{
+    int dt,v;
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    char date[65];
+    fp = fopen("agn.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    int day1,month1,year1;
+    fp = fopen("agn.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    char *d;
+    int choice1,choice2,option;
+    printf("What would you like to do?\n");
+    printf(" 1.Load the file in AVL\n 2.Load the file with hashing with chaining\n");
+    scanf("%d", &choice1);
+    while((choice1!=1)&&(choice1!=2))
+    {
+        printf("Not a valid choice, please type a number between 1 to 2\n");
+        scanf("%d",&choice1);
+    }
+    if(choice1==1)
+    {
+       printf("How would you like to load the file in the AVL?\n");
+       printf(" 1.Based on date\n 2.Based on volume\n");
+       scanf("%d", &choice2);
+       while((choice2!=1)&&(choice2!=2))
+        {
+        printf("Not a valid choice, please type a number between 1 to 2\n");
+        scanf("%d",&choice2);
+        }
+        if(choice2==1)
+        {
+            struct nodeA *root=NULL;
+            for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    root=insert(root,dt,v);
+    }
+    printf("What would you like to do?\n");
+    printf(" 1.See the constructed AVL in inorder traversal\n 2.Search for a volume of a given date\n 3.Change the volume of a given date\n 4.Delete the record of a specific date\n 5.Exit the application\n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2)&&(option!=3)&&(option!=4)&&(option!=5))
+    {
+        printf("Not a valid choice, please type a number between 1 to 5\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            inOrder(root);
+            break;
+        case 2:
+            printf("Give the date of which the volume you want to search for: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            searchInAVL(dt,root);
+            break;
+        case 3:
+            printf("Give the date of which the volume you want to change: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            changeInAVL(dt,root);
+            break;
+        case 4:
+            printf("Give the date of the record you wish to delete: \n");
+            scanf("%s", date);
+            sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+            dt=day1+100*month1+10000*year1;
+            root=Delete(root,dt);
+            inOrder(root);
+            break;
+        case 5:
+            exit(0);
+            break;
+    }
+    }
+    else if(choice2==2)
+    {
+        struct nodeB *root=NULL;
+        for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    sscanf(date,"%d-%d-%d",&year1,&month1,&day1);
+    dt=day1+100*month1+10000*year1;
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    root=insertB(root,dt,v);
+    }
+    printf("What would you like to do?\n");
+    printf(" 1.Find date/dates with minimum volume \n 2.Find date/dates with maximum volume \n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2))
+    {
+        printf("Not a valid choice, please type 1 or 2.\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            minimumVolumeB(root);
+            break;
+        case 2:
+            maximumVolumeB(root);
+            break;
+    }
+    }
+    }
+    else if(choice1==2)
+    {
+        for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy(date,d);
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    v=atoi(d);
+    insertC(date,v);
+    }
+    int jk;
+    for(jk=0;jk<SIZE;jk++)
+    {
+    printf("\nEntries at index %d: ",jk);
+       if(head[jk] == NULL)
+       {
+       printf("No Hash Entry!");
+       }
+       else
+       {
+      for(n=head[jk];n!=NULL;n=n->next)
+      {
+          printf("%s,%d,volume:%d->",n->Date,n->date,n->volume);
+      }
+      printf("\n");
+       }
+     }
+    printf("What would you like to do?\n");
+    printf(" 1.Search volume of a given date\n 2.Change the volume of a given date\n 3.Delete a date\n 4.Exit the application\n");
+    scanf("%d", &option);
+    while((option!=1)&&(option!=2)&&(option!=3)&&(option!=4))
+    {
+        printf("Not a valid choice, please type a number between 1 to 4\n");
+        scanf("%d",&option);
+    }
+    switch(option)
+    {
+        case 1:
+            printf("Give the date of which the volume you want to search for: \n");
+            scanf("%s", date);
+            searchC(date);
+            break;
+        case 2:
+            printf("Give the date of which the volume you want to change: \n");
+            scanf("%s", date);
+            changeC(date);
+            break;
+        case 3:
+            printf("Give the date of the record you wish to delete: \n");
+            scanf("%s", date);
+            DeleteC(date);
+            printf("The hash table after deleting the record is: \n");
+            for(jk=0;jk<SIZE;jk++)
+    {
+    printf("\nEntries at index %d: ",jk);
+       if(head[jk] == NULL)
+       {
+       printf("No Hash Entry!");
+       }
+       else
+       {
+      for(n=head[jk];n!=NULL;n=n->next)
+      {
+          printf("%s,%d,volume:%d->",n->Date,n->date,n->volume);
+      }
+      printf("\n");
+       }
+     }
+            break;
+        case 4:
+            exit(0);
+            break;
+    }
+    }
+    return 0;
+}

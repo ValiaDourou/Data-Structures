@@ -1,0 +1,151 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+struct row
+{
+    char date[65];
+    float close;
+};
+
+void HeapSort(struct row * arr, int num)
+{
+    int l,r,k,j,i;
+    l=(num/2) +1;
+    r=num;
+    float temp,s;
+    char d[65];
+    while (r>=1)
+    {
+        if(l>0)
+        {
+            l=l-1;
+            j=l;
+        }
+        else
+        {
+            temp=arr[r].close;
+            strcpy(d,arr[r].date);
+            arr[r].close=arr[0].close;
+            strcpy(arr[r].date,arr[0].date);
+            arr[0].close=temp;
+            strcpy(arr[0].date,d);
+            r=r-1;
+            j=0;
+        }
+        s=arr[j].close;
+        strcpy(d,arr[j].date);
+        while(2*j+1<=r)
+        {
+          k=2*j+1;
+          if((k<r)&&(arr[k].close<arr[k+1].close))
+          {
+              k=k+1;
+          }
+          if(s<arr[k].close)
+          {
+              arr[j].close=arr[k].close;
+              strcpy(arr[j].date,arr[k].date);
+              j=k;
+          }
+          else
+          {
+              goto E;
+          }
+        }
+        E: arr[j].close=s; strcpy(arr[j].date,d);
+    }
+    int year1,month1,day1,year2,month2,day2;
+    for(i=0;i<=num;i++)
+    {
+        if(arr[i].close==arr[i+1].close)
+        {
+            sscanf(arr[i].date,"%d-%d-%d",&year1,&month1,&day1);
+            sscanf(arr[i+1].date,"%d-%d-%d",&year2,&month2,&day2);
+            if(year2<year1)
+            {
+                strcpy(d,arr[i+1].date);
+                strcpy(arr[i+1].date,arr[i].date);
+                strcpy(arr[i].date,d);
+            }
+            else if(year2==year1)
+            {
+                if(month2<month1)
+                {
+                strcpy(d,arr[i+1].date);
+                strcpy(arr[i+1].date,arr[i].date);
+                strcpy(arr[i].date,d);
+                }
+                else if(month2==month1)
+                {
+                    if(day2<day1)
+                    {
+                     strcpy(d,arr[i+1].date);
+                     strcpy(arr[i+1].date,arr[i].date);
+                     strcpy(arr[i].date,d);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+int main()
+{
+    FILE *fp;
+    int count = 0;
+    char c;
+    int h=0;
+    fp = fopen("ainv.us.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Could not open file");
+        return 0;
+    }
+    for (c = getc(fp); c != EOF; c = getc(fp))
+    {
+        if (c == '\n')
+        {
+            count = count + 1;
+        }
+    }
+    fclose(fp);
+    char str[count][65];
+    fp = fopen("ainv.us.txt", "r");
+    for (h=0; h <=count; h++)
+    {
+    fscanf (fp, "%s", str[h]);
+    }
+    struct row arr[count-1];
+    char *d;
+    int j=0,i=0;
+    for (h=1; h<count; h++)
+    {
+    d=strtok(str[h], ",");
+    strcpy((arr + j)->date,d);
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    d=strtok(NULL, ",");
+    (arr+j)->close=atof(d);
+    j++;
+    }
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    HeapSort(arr,count-2);
+    gettimeofday(&end, NULL);
+    double time_taken;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+    for ( j = 0; j < count-1; j++ )
+    {
+         printf("%d.date = %s, ", j, (arr+j)->date );
+         printf("%d.close = %f\n", j, (arr+j)->close );
+    }
+    printf("Time measured: %.6f seconds.\n", time_taken);
+    fclose(fp);
+    return 0;
+
+}
